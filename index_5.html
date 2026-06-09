@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VibeBar Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#141009;}
+*{box-sizing:border-box;}
+
+.vb-root{
+  --gold:#E7A94B; --coral:#F0654E; --mint:#58D0A0;
+  --bg:#141009; --surf:#1E1810; --surf2:#251E14; --line:rgba(231,169,75,.14);
+  --text:#F4ECDD; --dim:#B6AB97; --faint:#7C7261;
+  font-family:'Inter','Sarabun',system-ui,sans-serif;
+  background:
+    radial-gradient(900px 500px at 78% -8%, rgba(231,169,75,.10), transparent 60%),
+    radial-gradient(700px 500px at 8% 105%, rgba(240,101,78,.07), transparent 55%),
+    var(--bg);
+  color:var(--text); min-height:100vh; padding:22px clamp(14px,4vw,40px) 40px;
+}
+
+.vb-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:26px;}
+.vb-brand{display:flex;align-items:center;gap:10px;}
+.vb-brand svg{color:var(--gold);filter:drop-shadow(0 0 6px rgba(231,169,75,.6));}
+.vb-wordmark{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;letter-spacing:.5px;color:#FFE6C2;
+  text-shadow:0 0 6px rgba(255,180,90,.55),0 0 18px rgba(240,101,78,.35),0 0 40px rgba(240,101,78,.2);animation:vbflick 6s infinite;}
+@keyframes vbflick{0%,97%,100%{opacity:1}97.5%{opacity:.6}98%{opacity:1}98.5%{opacity:.55}}
+.vb-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.vb-pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;border:1px solid var(--line);}
+.vb-pill-live{color:var(--mint);border-color:rgba(88,208,160,.4);background:rgba(88,208,160,.08);}
+.vb-pill-cache{color:var(--gold);border-color:rgba(231,169,75,.4);background:rgba(231,169,75,.08);}
+.vb-refresh{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text);
+  background:var(--surf2);border:1px solid var(--line);border-radius:10px;padding:7px 12px;cursor:pointer;font-family:inherit;transition:.15s;}
+.vb-refresh:hover{border-color:var(--gold);}
+.vb-refresh:disabled{opacity:.5;cursor:default;}
+.vb-close{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#1a120a;
+  background:linear-gradient(135deg,#F6C56A,#E7A94B);border:none;border-radius:10px;padding:8px 14px;cursor:pointer;
+  font-family:inherit;box-shadow:0 0 18px -4px rgba(231,169,75,.6);transition:.15s;}
+.vb-close:hover{filter:brightness(1.06);}
+.vb-close:disabled{opacity:.6;cursor:default;}
+.vb-spin{animation:vbspin 1s linear infinite;transform-origin:center;}
+@keyframes vbspin{to{transform:rotate(360deg)}}
+
+.vb-hero{margin-bottom:24px;}
+.vb-hero-eyebrow{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--faint);font-weight:600;margin-bottom:6px;}
+.vb-hero-net{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(46px,9vw,82px);line-height:1;letter-spacing:-1px;font-variant-numeric:tabular-nums;}
+.vb-hero-tags{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:14px;}
+.vb-tag{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--dim);}
+
+.vb-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+.vb-kpi{background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:18px;}
+.vb-kpi-hero{box-shadow:0 0 0 1px rgba(88,208,160,.12),0 8px 30px -12px rgba(0,0,0,.7);}
+.vb-kpi-label{font-size:12px;color:var(--faint);font-weight:600;letter-spacing:.4px;margin-bottom:8px;}
+.vb-kpi-value{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(20px,3.2vw,28px);font-variant-numeric:tabular-nums;}
+.vb-kpi-sub{font-size:11.5px;color:var(--dim);margin-top:6px;}
+
+.vb-card{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px;}
+.vb-card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.vb-card-head h2{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin:0;}
+.vb-legend{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);}
+.vb-legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-left:6px;}
+.vb-chart{position:relative;width:100%;}
+.vb-chart svg{display:block;width:100%;height:auto;overflow:visible;}
+.vb-floattip{position:absolute;pointer-events:none;opacity:0;transform:translate(-50%,-110%);transition:opacity .12s;
+  background:var(--surf2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;min-width:150px;z-index:5;
+  box-shadow:0 10px 30px -8px rgba(0,0,0,.8);}
+.vb-floattip .d{font-size:12px;color:var(--faint);font-weight:600;margin-bottom:6px;}
+.vb-floattip .r{display:flex;justify-content:space-between;gap:18px;font-size:13px;padding:2px 0;font-variant-numeric:tabular-nums;}
+.vb-floattip .r b{font-family:'Space Grotesk',sans-serif;}
+.vb-note{font-size:12.5px;color:var(--dim);line-height:1.6;margin:14px 0 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);}
+
+.vb-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+
+.vb-bars{display:flex;flex-direction:column;gap:13px;}
+.vb-barrow-top{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:5px;}
+.vb-barrow-name{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vb-barrow-amt{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--gold);font-variant-numeric:tabular-nums;flex-shrink:0;}
+.vb-bartrack{height:7px;background:rgba(255,255,255,.05);border-radius:99px;overflow:hidden;}
+.vb-barfill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--coral),var(--gold));}
+
+.vb-table{display:flex;flex-direction:column;}
+.vb-tr{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 22px;align-items:center;gap:8px;font-size:13px;font-variant-numeric:tabular-nums;text-align:right;}
+.vb-tr>span:first-child{text-align:left;}
+.vb-th{color:var(--faint);font-weight:600;font-size:11.5px;letter-spacing:.4px;padding:0 4px 10px;border-bottom:1px solid rgba(255,255,255,.07);}
+.vb-trow{width:100%;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.05);padding:11px 4px;cursor:pointer;font-family:'Space Grotesk',sans-serif;color:var(--text);}
+.vb-trow:hover{background:rgba(255,255,255,.03);}
+.vb-td-date{font-family:'Inter','Sarabun',sans-serif;color:var(--dim);font-weight:500;}
+.vb-chev{color:var(--faint);transition:transform .18s;justify-self:end;}
+.vb-chev-open{transform:rotate(180deg);}
+.vb-detail{padding:6px 4px 12px;display:flex;flex-direction:column;gap:6px;animation:vbfade .2s ease;}
+@keyframes vbfade{from{opacity:0}to{opacity:1}}
+.vb-detail-row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--dim);font-variant-numeric:tabular-nums;padding:3px 8px;background:rgba(255,255,255,.025);border-radius:6px;}
+.vb-empty{justify-content:center;color:var(--faint);}
+
+.vb-foot{font-size:11.5px;color:var(--faint);text-align:center;margin-top:10px;line-height:1.6;}
+
+@media (max-width:860px){.vb-kpis{grid-template-columns:repeat(2,1fr);}.vb-grid{grid-template-columns:1fr;}}
+@media (prefers-reduced-motion:reduce){.vb-wordmark{animation:none;}}
+
+/* printable report (off-screen, captured to PDF) */
+.vb-report{position:fixed;left:-10000px;top:0;width:760px;background:#fff;color:#1f2937;font-family:'Sarabun','Inter',sans-serif;padding:40px;line-height:1.4;}
+.vb-rep-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #E7A94B;padding-bottom:14px;}
+.vb-rep-brand{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;color:#C8841F;letter-spacing:.5px;}
+.vb-rep-title{font-size:15px;font-weight:700;color:#374151;text-align:right;line-height:1.5;}
+.vb-rep-sub{font-size:12px;color:#6b7280;margin:12px 0 24px;display:flex;justify-content:space-between;}
+.vb-rep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px;}
+.vb-rep-cell{border:1px solid #e5e7eb;border-radius:10px;padding:14px;}
+.vb-rep-cell .l{font-size:11px;color:#6b7280;font-weight:600;margin-bottom:6px;}
+.vb-rep-cell .v{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;}
+.vb-rep-h2{font-size:14px;font-weight:700;color:#374151;margin:0 0 8px;}
+.vb-rep-table{width:100%;border-collapse:collapse;margin-bottom:26px;font-size:12.5px;}
+.vb-rep-table th{text-align:right;color:#6b7280;font-weight:600;font-size:11px;padding:6px 10px;border-bottom:2px solid #e5e7eb;}
+.vb-rep-table th:first-child,.vb-rep-table td:first-child{text-align:left;}
+.vb-rep-table td{text-align:right;padding:7px 10px;border-bottom:1px solid #f1f3f5;font-variant-numeric:tabular-nums;}
+.vb-rep-total td{font-weight:700;border-top:2px solid #e5e7eb;border-bottom:none;}
+.vb-rep-foot{font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:12px;line-height:1.6;}
+
+@media print{
+  html,body{background:#fff;}
+  .vb-root>*:not(.vb-report){display:none !important;}
+  .vb-report{position:static !important;left:auto !important;width:100% !important;padding:24px !important;}
+}
+</style>
+</head>
+<body>
+<div class="vb-root" id="root"></div>
+
+<script>
+"use strict";
+/* ====================== config & data ====================== */
+var SHEET_ID = "1CM0HygOn0FlsBCB0FmWNOr9XzXZKpWYPMWm0TqmQ6Kk";
+var GID = "324368043";
+var CSV_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:csv&gid=" + GID;
+var H2C_URL = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+var JSPDF_URL = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+
+var FALLBACK = [
+  ["2026-06-05",22862.1,6505,"• ถ่าน ฿459\n• น้ำมันทอดของ ฿248\n• แอปเปิ้ล ฿60\n• เนย ฿70\n• กุ้งต้นหอม ฿260\n• นมดีน่า ฿78\n• บิ๊กลี ฿1,780\n• ซาเล้ง ฿1,200\n• น้ำแข็ง ฿290\n• ข้าวdj ฿60\n• Dj ฿2,000"],
+  ["2026-06-06",26549.7,5561,"• นมสด ฿100\n• มะพร้าว ฿300\n• อาหารกาแฟ ฿64\n• ผัก ใบมิน ฿170\n• น้ำแข็ง ฿290\n• ซาเล้ง ฿960\n• น็อตยิงเหล็ก ฿85\n• เนย ฿70\n• กาว2หน้า ฿22\n• ล้างแอร์ ฿500\n• Dj ฿3,000"],
+  ["2026-06-07",19127.1,4281,"• น้ำมันรถดีเจ ฿130\n• เซเว่น ฿121\n• Dj ฿3,000\n• นมสด ฿300\n• มะพร้าว ฿300\n• น้ำแข็ง ฿430"],
+  ["2026-06-04",0,17491,"• Makro ฿17,491"],
+  ["2026-06-05",0,210,"• พีชเชื่อม ฿210"],
+  ["2026-06-05",0,19100,"• เหล้า บุญชัย ฿19,100"],
+  ["2026-06-01",0,3000,"• ซ่อมรถกอล์ฟ ฿3,000"],
+  ["2026-06-02",0,9550,"• มัจฉะ ฿9,550"],
+  ["2026-06-02",0,706,"• หลอดแดง ฿706"],
+  ["2026-06-03",0,985,"• silpin coconut ฿985"],
+  ["2026-06-05",0,6300,"• เมล็ดกาแฟ ฿6,300"],
+  ["2026-06-05",0,1510,"• บีลัคกี้ ไส้กรอก พามาแฮม ฿1,510"],
+  ["2026-06-05",0,154,"• รถรับกาแฟ ฿154"],
+  ["2026-06-05",0,7020,"• Food พนักงาน ฿7,020"],
+  ["2026-06-06",0,963,"• Internet ฿963"],
+  ["2026-06-06",0,22200,"• เบียร์สด สิงห์ ฿22,200"],
+  ["2026-06-06",0,99,"• ผัดสลัดรอคเก็ต ฿99"],
+  ["2026-06-06",0,500,"• ล้างแอร์ ฿500"],
+  ["2026-06-06",0,1799,"• หม้อหุงข้าว ฿1,799"],
+  ["2026-06-08",0,2213,"• ผ่อนมอไซ ฿2,213"],
+  ["2026-06-08",17968.1,2940,"• นมสด ฿300\n• มะพร้าว ฿300\n• น้ำแข็ง ฿430\n• ผัก ฿50\n• ข้าวนักดนตรี ฿160\n• นักดนตรี ฿1,700"]
+];
+
+var GOLD="#E7A94B", CORAL="#F0654E", MINT="#58D0A0", FAINT="#7C7261";
+var TH_MONTHS=["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+var TH_MONTHS_FULL=["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+
+/* ====================== helpers ====================== */
+function num(v){ if(typeof v==="number") return v; if(!v) return 0; var n=parseFloat(String(v).replace(/[฿,\s]/g,"")); return isNaN(n)?0:n; }
+function baht(n){ return "฿"+Math.round(n).toLocaleString("en-US"); }
+function shortDate(iso){ var p=String(iso).split("-"); if(p.length<3) return iso; return parseInt(p[2],10)+" "+(TH_MONTHS[parseInt(p[1],10)-1]||""); }
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function parseItems(detail){
+  if(!detail) return [];
+  return String(detail).split(/\r?\n/).map(function(s){return s.trim();}).filter(Boolean).map(function(line){
+    var cleaned=line.replace(/^[•·∙\-\*]\s*/,"").trim();
+    var m=cleaned.match(/฿\s*([\d,]+(?:\.\d+)?)\s*$/);
+    if(m) return { name: cleaned.slice(0,m.index).trim()||"อื่นๆ", amount: parseFloat(m[1].replace(/,/g,"")) };
+    return { name: cleaned, amount: 0 };
+  }).filter(function(it){return it.name;});
+}
+
+/* small CSV parser: handles quotes, embedded commas and newlines */
+function parseCSV(text){
+  var rows=[], row=[], field="", i=0, inQ=false, c;
+  while(i<text.length){
+    c=text[i];
+    if(inQ){
+      if(c==='"'){ if(text[i+1]==='"'){ field+='"'; i+=2; continue; } inQ=false; i++; continue; }
+      field+=c; i++; continue;
+    } else {
+      if(c==='"'){ inQ=true; i++; continue; }
+      if(c===','){ row.push(field); field=""; i++; continue; }
+      if(c==='\r'){ i++; continue; }
+      if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=""; i++; continue; }
+      field+=c; i++; continue;
+    }
+  }
+  if(field.length>0 || row.length>0){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function buildModel(rows){
+  var parsed=rows.map(function(r){ return { date:String(r[0]).trim(), sales:num(r[1]), expense:num(r[2]), items:parseItems(r[3]) }; });
+  var byDay={};
+  parsed.forEach(function(r){
+    if(!r.date) return;
+    if(!byDay[r.date]) byDay[r.date]={date:r.date,sales:0,expense:0,items:[]};
+    byDay[r.date].sales+=r.sales; byDay[r.date].expense+=r.expense;
+    byDay[r.date].items=byDay[r.date].items.concat(r.items);
+  });
+  var days=Object.keys(byDay).map(function(k){return byDay[k];}).sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
+  days.forEach(function(d){ d.net=d.sales-d.expense; d.label=shortDate(d.date); });
+  var itemMap={};
+  parsed.forEach(function(r){ r.items.forEach(function(it){ var k=it.name||"อื่นๆ"; itemMap[k]=(itemMap[k]||0)+it.amount; }); });
+  var topExpenses=Object.keys(itemMap).map(function(k){return {name:k,amount:itemMap[k]};})
+    .filter(function(x){return x.amount>0;}).sort(function(a,b){return b.amount-a.amount;}).slice(0,12);
+  var totalSales=days.reduce(function(s,d){return s+d.sales;},0);
+  var totalExpense=days.reduce(function(s,d){return s+d.expense;},0);
+  var net=totalSales-totalExpense;
+  var margin=totalSales>0?(net/totalSales)*100:0;
+  var selling=days.filter(function(d){return d.sales>0;});
+  return { days:days, topExpenses:topExpenses, totalSales:totalSales, totalExpense:totalExpense, net:net, margin:margin,
+    avgSale: selling.length? totalSales/selling.length : 0,
+    range: days.length ? shortDate(days[0].date)+" – "+shortDate(days[days.length-1].date) : "" };
+}
+
+/* ====================== SVG chart ====================== */
+function chartSVG(days){
+  var W=720,H=300,L=46,R=12,T=14,B=30;
+  var pw=W-L-R, ph=H-T-B;
+  var n=days.length || 1;
+  var maxV=0, minV=0;
+  days.forEach(function(d){ maxV=Math.max(maxV,d.sales,d.expense,d.net); minV=Math.min(minV,d.net,0); });
+  if(maxV===minV){ maxV=1; }
+  var range=maxV-minV;
+  function y(v){ return T + ph*(1-(v-minV)/range); }
+  var zeroY=y(0);
+  var gw=pw/n;
+  var bw=Math.min(15, gw*0.30);
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="กราฟยอดขายและรายจ่ายรายวัน">';
+  // gridlines + y labels (5 ticks)
+  var ticks=5;
+  for(var t=0;t<ticks;t++){
+    var val=minV + range*t/(ticks-1);
+    var yy=y(val);
+    svg+='<line x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'" stroke="rgba(255,255,255,.07)" />';
+    var lab=Math.abs(val)>=1000 ? Math.round(val/1000)+"k" : Math.round(val);
+    svg+='<text x="'+(L-6)+'" y="'+(yy+4)+'" fill="'+FAINT+'" font-size="11" text-anchor="end" font-family="Space Grotesk,Inter,sans-serif">'+lab+'</text>';
+  }
+  // bars + x labels
+  var pts=[];
+  days.forEach(function(d,i){
+    var cx=L + gw*i + gw/2;
+    var sX=cx - bw - 1, eX=cx + 1;
+    var sY=y(d.sales), eY=y(d.expense);
+    svg+='<rect x="'+sX+'" y="'+sY+'" width="'+bw+'" height="'+Math.max(0,zeroY-sY)+'" rx="3" fill="'+GOLD+'" />';
+    svg+='<rect x="'+eX+'" y="'+eY+'" width="'+bw+'" height="'+Math.max(0,zeroY-eY)+'" rx="3" fill="'+CORAL+'" />';
+    pts.push(cx+","+y(d.net));
+    svg+='<text x="'+cx+'" y="'+(H-12)+'" fill="'+FAINT+'" font-size="12" text-anchor="middle" font-family="Inter,Sarabun,sans-serif">'+esc(d.label)+'</text>';
+  });
+  // zero baseline
+  svg+='<line x1="'+L+'" y1="'+zeroY+'" x2="'+(W-R)+'" y2="'+zeroY+'" stroke="rgba(255,255,255,.18)" />';
+  // net line
+  if(pts.length>1) svg+='<polyline points="'+pts.join(" ")+'" fill="none" stroke="'+MINT+'" stroke-width="2" />';
+  days.forEach(function(d,i){ var cx=L+gw*i+gw/2; svg+='<circle cx="'+cx+'" cy="'+y(d.net)+'" r="3" fill="'+MINT+'" />'; });
+  // hover hit areas
+  days.forEach(function(d,i){
+    var x=L+gw*i;
+    svg+='<rect class="vb-hit" data-i="'+i+'" x="'+x+'" y="'+T+'" width="'+gw+'" height="'+ph+'" fill="transparent" style="cursor:pointer" />';
+  });
+  svg+='</svg>';
+  return svg;
+}
+
+/* ====================== state & render ====================== */
+var state={ rows:FALLBACK, live:false, loading:true, updated:null, openRow:null, closing:false };
+var root=document.getElementById("root");
+
+var ICON={
+  wine:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8M12 15v7M7 2h10l-1 9a4 4 0 0 1-8 0L7 2z"/><path d="M6.5 7h11"/></svg>',
+  refresh:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></svg>',
+  up:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 7-7M14 8h7v7"/></svg>',
+  down:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l6 6 4-4 7 7M14 16h7v-7"/></svg>',
+  chev:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  wifi:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 20h.01"/></svg>',
+  wifioff:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20M8.5 16a5 5 0 0 1 7 0M12 20h.01M5 12.5a10 10 0 0 1 4-2.7"/></svg>',
+  file:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 12v6M9 15l3 3 3-3"/></svg>',
+  loader:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.2-8.5"/></svg>'
+};
+
+function render(){
+  var m=buildModel(state.rows);
+  var netPos=m.net>=0;
+  var ym=m.days.length ? m.days[m.days.length-1].date.slice(0,7) : new Date().toISOString().slice(0,7);
+  var mm=parseInt(ym.split("-")[1],10);
+  var monthFull=(TH_MONTHS_FULL[mm-1]||"")+" "+ym.split("-")[0];
+  var maxExp=m.topExpenses.length?m.topExpenses[0].amount:1;
+  window.__model=m; window.__ym=ym; // for PDF
+
+  var html="";
+  html+='<header class="vb-header"><div class="vb-brand">'+ICON.wine+'<span class="vb-wordmark">VibeBar</span></div>'+
+    '<div class="vb-controls">'+
+      '<span class="vb-pill '+(state.live?"vb-pill-live":"vb-pill-cache")+'">'+(state.live?ICON.wifi:ICON.wifioff)+(state.live?"ข้อมูลสด":"ข้อมูลสำรอง")+'</span>'+
+      '<button class="vb-refresh" data-act="refresh" '+(state.loading?"disabled":"")+'><span class="'+(state.loading?"vb-spin":"")+'" style="display:inline-flex">'+ICON.refresh+'</span><span>รีเฟรช</span></button>'+
+      '<button class="vb-close" data-act="close" '+(state.closing?"disabled":"")+'><span class="'+(state.closing?"vb-spin":"")+'" style="display:inline-flex">'+(state.closing?ICON.loader:ICON.file)+'</span><span>'+(state.closing?"กำลังสร้าง…":"ปิดบัญชี (PDF)")+'</span></button>'+
+    '</div></header>';
+
+  html+='<section class="vb-hero"><div class="vb-hero-eyebrow">ผลประกอบการ • '+esc(m.range)+'</div>'+
+    '<div class="vb-hero-net" style="color:'+(netPos?MINT:CORAL)+'">'+(netPos?"":"−")+baht(Math.abs(m.net))+'</div>'+
+    '<div class="vb-hero-tags">'+
+      '<span class="vb-tag"><span style="color:'+GOLD+';display:inline-flex">'+ICON.up+'</span> ยอดขาย '+baht(m.totalSales)+'</span>'+
+      '<span class="vb-tag"><span style="color:'+CORAL+';display:inline-flex">'+ICON.down+'</span> รายจ่าย '+baht(m.totalExpense)+'</span>'+
+      '<span class="vb-tag" style="color:'+(netPos?MINT:CORAL)+'">'+(netPos?"กำไรสุทธิ":"ขาดทุนสุทธิ")+'ในช่วงนี้</span>'+
+    '</div></section>';
+
+  html+='<section class="vb-kpis">'+
+    kpi("ยอดขายรวม",baht(m.totalSales),GOLD,"เฉลี่ย/วันขาย "+baht(m.avgSale),false)+
+    kpi("รายจ่ายรวม",baht(m.totalExpense),CORAL,"รวมสต๊อกของและค่าใช้จ่าย",false)+
+    kpi("กำไรสุทธิ",(netPos?"":"−")+baht(Math.abs(m.net)),netPos?MINT:CORAL,netPos?"กำไร":"ขาดทุน",true)+
+    kpi("อัตรากำไร",m.margin.toFixed(1)+"%",m.margin>=0?MINT:CORAL,"กำไรสุทธิ ÷ ยอดขาย",false)+
+  '</section>';
+
+  html+='<section class="vb-card"><div class="vb-card-head"><h2>ยอดขาย vs รายจ่าย รายวัน</h2>'+
+    '<div class="vb-legend"><i style="background:'+GOLD+'"></i>ยอดขาย<i style="background:'+CORAL+'"></i>รายจ่าย<i style="background:'+MINT+';border-radius:9px"></i>กำไรสุทธิ</div></div>'+
+    '<div class="vb-chart" id="chart">'+chartSVG(m.days)+'<div class="vb-floattip" id="ftip"></div></div>';
+  if(m.topExpenses[0]) html+='<p class="vb-note">รายจ่ายก้อนใหญ่บางรายการเป็นการสต๊อกของ (เช่น '+esc(m.topExpenses[0].name)+' '+baht(m.topExpenses[0].amount)+') จึงทำให้กำไรสุทธิรายวันบางวันติดลบ แม้ยอดขายจะปกติ</p>';
+  html+='</section>';
+
+  html+='<div class="vb-grid"><section class="vb-card"><div class="vb-card-head"><h2>รายจ่ายสูงสุด</h2></div><div class="vb-bars">';
+  m.topExpenses.forEach(function(e){
+    html+='<div class="vb-barrow"><div class="vb-barrow-top"><span class="vb-barrow-name" title="'+esc(e.name)+'">'+esc(e.name)+'</span><span class="vb-barrow-amt">'+baht(e.amount)+'</span></div>'+
+      '<div class="vb-bartrack"><div class="vb-barfill" style="width:'+Math.max(4,(e.amount/maxExp)*100)+'%"></div></div></div>';
+  });
+  html+='</div></section>';
+
+  html+='<section class="vb-card"><div class="vb-card-head"><h2>สรุปรายวัน</h2></div><div class="vb-table">'+
+    '<div class="vb-tr vb-th"><span>วันที่</span><span>ยอดขาย</span><span>รายจ่าย</span><span>สุทธิ</span><span></span></div>';
+  m.days.slice().reverse().forEach(function(d){
+    var open=state.openRow===d.date;
+    html+='<div>'+
+      '<button class="vb-tr vb-trow" data-row="'+d.date+'">'+
+        '<span class="vb-td-date">'+esc(d.label)+'</span>'+
+        '<span style="color:'+GOLD+'">'+baht(d.sales)+'</span>'+
+        '<span style="color:'+CORAL+'">'+baht(d.expense)+'</span>'+
+        '<span style="color:'+(d.net>=0?MINT:CORAL)+'">'+(d.net>=0?"":"−")+baht(Math.abs(d.net))+'</span>'+
+        '<span class="vb-chev'+(open?" vb-chev-open":"")+'" style="display:inline-flex">'+ICON.chev+'</span>'+
+      '</button>';
+    if(open){
+      html+='<div class="vb-detail">';
+      if(d.items.length) d.items.forEach(function(it){ html+='<div class="vb-detail-row"><span>'+esc(it.name)+'</span><span>'+baht(it.amount)+'</span></div>'; });
+      else html+='<div class="vb-detail-row vb-empty">ไม่มีรายละเอียด</div>';
+      html+='</div>';
+    }
+    html+='</div>';
+  });
+  html+='</div></section></div>';
+
+  // printable report
+  html+='<div class="vb-report" id="report"><div class="vb-rep-head"><div class="vb-rep-brand">VibeBar</div>'+
+    '<div class="vb-rep-title">รายงานปิดบัญชีประจำเดือน<br>'+esc(monthFull)+'</div></div>'+
+    '<div class="vb-rep-sub"><span>ช่วงข้อมูล: '+esc(m.range)+'</span><span>ออกรายงาน: '+new Date().toLocaleString("th-TH")+'</span></div>'+
+    '<div class="vb-rep-grid">'+
+      repcell("ยอดขายรวม",baht(m.totalSales),"#C8841F")+
+      repcell("รายจ่ายรวม",baht(m.totalExpense),"#D14A33")+
+      repcell("กำไรสุทธิ",(m.net>=0?"":"−")+baht(Math.abs(m.net)),m.net>=0?"#1A9E6A":"#D14A33")+
+      repcell("อัตรากำไร",m.margin.toFixed(1)+"%",m.margin>=0?"#1A9E6A":"#D14A33")+
+    '</div>'+
+    '<h3 class="vb-rep-h2">สรุปรายวัน</h3><table class="vb-rep-table"><thead><tr><th>วันที่</th><th>ยอดขาย</th><th>รายจ่าย</th><th>กำไรสุทธิ</th></tr></thead><tbody>';
+  m.days.forEach(function(d){
+    html+='<tr><td>'+esc(d.label)+'</td><td>'+baht(d.sales)+'</td><td>'+baht(d.expense)+'</td><td style="color:'+(d.net>=0?"#1A9E6A":"#D14A33")+'">'+(d.net>=0?"":"−")+baht(Math.abs(d.net))+'</td></tr>';
+  });
+  html+='<tr class="vb-rep-total"><td>รวมทั้งเดือน</td><td>'+baht(m.totalSales)+'</td><td>'+baht(m.totalExpense)+'</td><td style="color:'+(m.net>=0?"#1A9E6A":"#D14A33")+'">'+(m.net>=0?"":"−")+baht(Math.abs(m.net))+'</td></tr>';
+  html+='</tbody></table><h3 class="vb-rep-h2">รายจ่ายแยกรายการ (สูงสุด)</h3><table class="vb-rep-table"><thead><tr><th>รายการ</th><th>จำนวนเงิน</th></tr></thead><tbody>';
+  m.topExpenses.forEach(function(e){ html+='<tr><td>'+esc(e.name)+'</td><td>'+baht(e.amount)+'</td></tr>'; });
+  html+='</tbody></table><div class="vb-rep-foot">หมายเหตุ: รายจ่ายบางรายการเป็นการสต๊อกสินค้าก้อนใหญ่ ซึ่งจะทยอยขายในเดือนถัดไป จึงควรพิจารณาประกอบกับมูลค่าสินค้าคงเหลือ · สร้างโดย VibeBar Dashboard</div></div>';
+
+  var footUpd = state.updated ? "อัปเดตล่าสุด "+state.updated.toLocaleString("th-TH")+" · " : "";
+  html+='<footer class="vb-foot">'+footUpd+'ดึงข้อมูลจาก Google Sheet '+(state.live?"แบบเรียลไทม์":"(ใช้ข้อมูลสำรอง — เปิดสิทธิ์ดูสาธารณะเพื่อข้อมูลสด)")+'</footer>';
+
+  root.innerHTML=html;
+  bind(m);
+}
+
+function kpi(label,value,accent,sub,glow){
+  return '<div class="vb-kpi'+(glow?" vb-kpi-hero":"")+'"><div class="vb-kpi-label">'+label+'</div>'+
+    '<div class="vb-kpi-value" style="color:'+accent+'">'+value+'</div>'+(sub?'<div class="vb-kpi-sub">'+sub+'</div>':'')+'</div>';
+}
+function repcell(l,v,color){ return '<div class="vb-rep-cell"><div class="l">'+l+'</div><div class="v" style="color:'+color+'">'+v+'</div></div>'; }
+
+/* ====================== interactions ====================== */
+function bind(m){
+  root.querySelectorAll("[data-act]").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      var act=btn.getAttribute("data-act");
+      if(act==="refresh") load();
+      else if(act==="close") closeMonth();
+    });
+  });
+  root.querySelectorAll("[data-row]").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      var dt=btn.getAttribute("data-row");
+      state.openRow = (state.openRow===dt)? null : dt;
+      render();
+    });
+  });
+  // chart hover tooltip
+  var chart=document.getElementById("chart");
+  var tip=document.getElementById("ftip");
+  if(chart&&tip){
+    chart.querySelectorAll(".vb-hit").forEach(function(hit){
+      hit.addEventListener("mousemove",function(ev){
+        var d=m.days[parseInt(hit.getAttribute("data-i"),10)];
+        tip.innerHTML='<div class="d">'+esc(d.label)+'</div>'+
+          '<div class="r"><span style="color:'+GOLD+'">ยอดขาย</span><b>'+baht(d.sales)+'</b></div>'+
+          '<div class="r"><span style="color:'+CORAL+'">รายจ่าย</span><b>'+baht(d.expense)+'</b></div>'+
+          '<div class="r" style="border-top:1px solid rgba(255,255,255,.08);padding-top:4px;margin-top:2px"><span style="color:'+(d.net>=0?MINT:CORAL)+'">กำไรสุทธิ</span><b style="color:'+(d.net>=0?MINT:CORAL)+'">'+(d.net>=0?"":"−")+baht(Math.abs(d.net))+'</b></div>';
+        var rect=chart.getBoundingClientRect();
+        tip.style.left=(ev.clientX-rect.left)+"px";
+        tip.style.top=(ev.clientY-rect.top)+"px";
+        tip.style.opacity="1";
+      });
+      hit.addEventListener("mouseleave",function(){ tip.style.opacity="0"; });
+    });
+  }
+}
+
+/* ====================== data load ====================== */
+function load(){
+  state.loading=true; render();
+  fetch(CSV_URL,{cache:"no-store"}).then(function(res){
+    if(!res.ok) throw new Error("blocked");
+    return res.text();
+  }).then(function(text){
+    var data=parseCSV(text).slice(1).filter(function(r){ return r&&r[0]&&/\d{4}-\d{2}-\d{2}/.test(String(r[0])); });
+    if(!data.length) throw new Error("empty");
+    state.rows=data; state.live=true;
+  }).catch(function(){
+    state.rows=FALLBACK; state.live=false;
+  }).then(function(){
+    state.updated=new Date(); state.loading=false; render();
+  });
+}
+
+/* ====================== PDF / month close ====================== */
+function loadScript(src){
+  return new Promise(function(resolve,reject){
+    if(document.querySelector('script[src="'+src+'"]')) return resolve();
+    var el=document.createElement("script"); el.src=src; el.async=true;
+    el.onload=function(){resolve();}; el.onerror=function(){reject(new Error("โหลดไลบรารีไม่สำเร็จ"));};
+    document.head.appendChild(el);
+  });
+}
+function closeMonth(){
+  if(state.closing) return;
+  state.closing=true; render();
+  loadScript(H2C_URL).then(function(){ return loadScript(JSPDF_URL); }).then(function(){
+    return (document.fonts&&document.fonts.ready)?document.fonts.ready.catch(function(){}):Promise.resolve();
+  }).then(function(){ return new Promise(function(r){ setTimeout(r,150); }); }).then(function(){
+    var node=document.getElementById("report");
+    return window.html2canvas(node,{scale:2,backgroundColor:"#ffffff",useCORS:true});
+  }).then(function(canvas){
+    var data=canvas.toDataURL("image/png");
+    var jsPDF=window.jspdf.jsPDF;
+    var pdf=new jsPDF("p","mm","a4");
+    var pwid=pdf.internal.pageSize.getWidth(), phgt=pdf.internal.pageSize.getHeight();
+    var imgH=canvas.height*pwid/canvas.width;
+    var left=imgH, pos=0;
+    pdf.addImage(data,"PNG",0,pos,pwid,imgH); left-=phgt;
+    while(left>0){ pos-=phgt; pdf.addPage(); pdf.addImage(data,"PNG",0,pos,pwid,imgH); left-=phgt; }
+    pdf.save("VibeBar-Monthly-Close-"+(window.__ym||"")+".pdf");
+  }).catch(function(e){
+    try{ window.print(); }catch(_){ alert("สร้าง PDF ไม่สำเร็จ: "+(e&&e.message)); }
+  }).then(function(){ state.closing=false; render(); });
+}
+
+/* ====================== go ====================== */
+render();
+load();
+</script>
+</body>
+</html>
